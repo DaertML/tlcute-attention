@@ -1,0 +1,176 @@
+Several fundamental statement types have
+been defined to represent the
+algorithm execution flow . Building
+upon these primitive constructs , we
+need to derive specific dimensional
+information to refine the algorithm
+execution process . Besides , to
+facilitate the generation of
+functionally correct final code ,
+this step introduces parameter -
+related variable allocation
+mechanisms . We achieve this process
+by incorporating allocate statements
+, thereby ensuring proper allocation
+and management of memory resources .
+Specifically , the dimensional
+information to be derived includes :
+### Copy
+For the `Copy ` statement , it is
+necessary to complete its parameter
+configuration based on the execution
+characteristics of algorithm on the
+GPU architecture . The optimization
+primarily focuses on access
+locations within global memory .
+- Global to shared
+Prior to performing the `Copy ` statement
+from or to global memory , it is
+necessary to fully characterize the
+matrix information in global memory .
+The Allocate statement can be used
+to represent the storage layout and
+attributes of the entire matrix in
+global memory like the follow :
+```
+Allocate A in global (M , K ) with offset
+batch_offset
+Copy A from global to shared
+...
+```
+For matrix `A` with shape `( batch , M , N
+)`, here we allocate tensor `A`
+whose shape is (M , K ) . Assuming that
+each block will be responsible for
+a batch , the global that should be
+loaded will have an offset of
+batch_offset . It can be used in the
+final implementation code . This
+Allocate statement needs to be
+applied to every `Copy ` statement
+involving global memory , unless the
+corresponding memory allocation has
+already been explicitly declared in
+the preceeding context .
+For `Copy ` statement itself , for
+instance , this clause :
+```
+Copy A from global to shared
+```
+If it is required to load a data block
+of size ( BM , BK ) from matrix `A`
+located at position L = i , the
+parameter configuration can be added
+in the following manner :
+```
+Copy A ( BM , BK ) in coordinate [ L = i ]
+from global to shared
+```
+The first clause represents the original
+Sketch description . By
+incorporating the aforementioned
+parameter information , the following
+complete implementation can be
+derived the second one .
+Here you should note that : L = i
+represents the i - th block after
+tiling . For example , if A is a
+matrix with shape (M , BK ) , `Copy ` A
+( BM , BK ) in coordinate [ L = i ]
+selects the i - th block , which is
+with the shape ( BM , BK ) . And there
+will be M / BM blocks in total .
+### Compute
+The dimensionality of the compute
+statement is directly determined by
+the dimensions of its input and
+output registers , thus requiring no
+additional dimensional information .
+However , there are still two aspects
+related to the compute statement
+that require further supplementation
+:
+- ** Declare intermediate variables :**
+**** During the computation process ,
+certain intermediate register
+variables serving as outputs require
+additional definition of their
+shape and storage attributes . Here
+is an example of GEMM :
+```
+...
+for i in 0: K :
+Compute GEMM A , B and get C
+...
+```
+where it didn 't declare what C is ,
+so you should add a allocate clause
+before the for loop to represent the
+shape information of S in register .
+```
+...
+Allocate C in register ( BM , BN )
+for i in 0: K :
+Compute GEMM A , B and get C
+...
+```
+Here we allocate the C in register
+with the information of whole
+dimension of block memory , and the
+real register shape can be inferred
+from the whole size .
+- ** Fuse two GEMM ( Add reshape ) :** In the
+scenario of fusing two consecutive
+GEMM operations , where the output of
+the first operation directly serves
+as the input to the second , it is
+necessary to transform the output of
+the first operation according to
+the specific computational scale to
+meet the input requirements of the
+second GEMM operation .
+Here is some prior knowledge : The
+layout of Tensor Core can be
+represented as ( MMA , MMA_M , MMA_N ) .
+Here , MMA denotes the computational
+scale required for matrices A , B ,
+and C in the GEMM operation , while
+MMA_M and MMA_N represent the
+repetition counts of the computation
+along the M and N dimensions ,
+respectively .
+Here is an example of fuse :
+```
+Compute GEMM E , F and get G
+... // There might be other
+operations , such as `Compute Softmax
+G`
+Compute GEMM G , H and accumulate I
+```
+Here `G` is the output of first GEMM
+and then used in second GEMM . There
+might be other operations between
+two GEMMs , such as softmax .
+HOWEVER , whenever there is an
+association between two GEMMs , a
+reshape statement must be added . So
+you have to add a reshape statement
+according to layout G . Add the
+statement before GEMM - II , just like
+the example below :
+```
+Compute GEMM E , F and get G
+... // There might be other
+operations , such as `Compute Softmax
+G`
+Reshape G from ( MMA_C , MMA_M , MMA_N )
+to ( MMA_A , MMA_M , MMA_N_new )
+Compute GEMM G , H and accumulate I
+```
+In this example , the `G` of GEMM - I
+is one of the input of GEMM - II .
+Since C is the `A` matrix of tensor
+core , the MMA shape of G should be
+changed from `MMA_C ` to `MMA_A ` ,
+and change the `MMA_N ` to adapt this
+difference .

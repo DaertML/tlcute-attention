@@ -1,0 +1,131 @@
+Use the following basic TL statements to
+describe the provided algorithm
+flow . Focus solely on describing the
+hardware execution process of the
+algorithm on the GPU , without adding
+excessive complex information .
+Here are two basic statements of the TL ,
+`Copy ` and `Compute `:
+### Copy
+The term " Copy " is used to denote the
+transfer of data between different
+levels of storage hierarchy in
+hardware . In GPUs , there are three
+primary storage levels :
+- ** global memory :** Global memory is
+high - capacity , high - latency video
+memory used for storing data shared
+by all threads , typically for
+holding complete matrices or large -
+scale datasets .
+- ** shared memory :** Shared memory is
+high - speed , low - latency on - chip
+memory used for data sharing within
+a thread block . It is typically used
+to store a small portion of data
+required for collaborative
+computation by the current thread
+block , loaded from global memory .
+- ** register :** Registers are the
+fastest private storage units , used
+for storing thread - local variables
+and temporary data . In CUDA Tensor
+Core operations , registers are
+directly involved in matrix multiply
+- accumulate ( MMA ) computations ,
+where each thread fetches its
+assigned data from shared memory and
+stores it in registers .
+In this context , a " Copy " operation
+requires specifying the variable
+name as well as the source and
+destination addresses of the
+variable . Here is the usage of `
+Copy ` statement :
+```
+Copy A from global to shared
+```
+The clause means load a block of the
+matrix `A` to the corresponding
+shared memory storage .
+### Compute
+The term " compute " is used to represent
+computations performed on hardware .
+Computational descriptions include
+various types of operations ,
+primarily arithmetic operations (
+addition , subtraction ,
+multiplication , division ) , matrix
+multiplication ( GEMM ) , accumulation ,
+and others . Here are some typical
+computations :
+- ** GEMM :** Use * GEMM * ( General Matrix
+Multiplication ) to represent the
+multiplication operation of two
+matrices at the register storage
+level , leveraging the fast access
+characteristics of registers to
+achieve high - performance matrix
+computations . Use GEMM . This
+primitive can be used in the
+following manner :
+```
+Compute GEMM A , B and get S
+Compute GEMM A , B and accumulate S
+```
+Here we compute the GEMM result of A
+and B , and store the result to the
+variable S .
+- ** Regular computation :** We need some
+regular computation like ** the four
+basic arithmetic operations ** , and
+we can use these basic operations
+like this :
+```
+Compute Multiply A , x and get new A
+Compute Multiply A , x and get B
+```
+Here we use these clauses to define
+the ** multiplication ** operation ,
+and the first means store the result
+back to A while the other means
+store to a new variable B .
+- ** Other operators :** Sometimes the
+users will define some other custom
+operators like softmax , and we can
+use it like :
+```
+Compute Softmax A
+```
+In this context , " compute " first
+requires specifying the exact type
+of computation , along with the
+variables involved in the
+computation and the variable name
+for the result of the computation .
+### Loop
+When describing the execution flow of an
+algorithm , it is often necessary to
+use ** for loops ** to represent
+iterative operations of operators .
+In such cases , a ** For statement **
+is used to describe these loops . The
+syntax `for i = 0: N ... end ` is
+employed to indicate a loop that
+iterates ** N times ** , and **
+indentation ** is used to control
+which code blocks are executed
+within the loop .
+```
+for i =0: N
+...
+end
+```
+Now , based on the algorithm workflow
+provided by the user , analyze the
+memory access and computational
+behavior of the algorithm on the GPU
+, and use the aforementioned
+statements to represent the
+semantically enriched execution flow
+of the algorithm .

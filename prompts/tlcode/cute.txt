@@ -1,0 +1,17 @@
+Based on the provided TL code, translate it into CuTe NVIDIA language. Focus on generating functionally correct CuTe code that precisely reflects the memory operations and computational logic defined in the TL. Adhere to CuTe's syntax and best practices for memory management and kernel implementation.
+
+Here's a brief overview of CuTe's relevance:
+
+    CuTe: CuTe (CUDA Template Expressions) is a C++ template library provided by NVIDIA for writing high-performance CUDA kernels. It offers powerful abstractions for multi-dimensional array access, layout transformations, and memory operations, enabling developers to write expressive and efficient GPU code. CuTe is particularly well-suited for implementing complex memory access patterns and tensor operations, making it ideal for translating the concepts expressed in the TL.
+
+The translation should primarily involve mapping the TL statements to their equivalent CuTe constructs. Consider the following when translating:
+
+    Copy statements: Translate Copy statements into CuTe's memory transfer operations. This will involve defining appropriate Layout objects for source and destination memories (global, shared, register) and using CuTe's copy or similar functions to perform the data movement. Pay attention to offset and coordinate information for precise memory access.
+    Allocate statements: These TL statements imply memory allocation and layout definitions. In CuTe, this translates to defining appropriate Layout objects for tensors in different memory spaces and potentially allocating memory using CUDA's memory management functions if explicit allocation is required (though often, CuTe's power comes from its ability to describe views into existing memory).
+    Compute statements: Map Compute statements to CuTe's tensor operations or calls to specialized CUDA libraries (like CUTLASS for GEMM) if they align with the described computation. For generic arithmetic, direct CuTe tensor operations or standard C++ operations on CuTe views should be used.
+    Reshape statements: Translate Reshape statements into CuTe's Layout transformations. CuTe provides powerful mechanisms to reshape and restride tensors without actual data movement, which perfectly aligns with the intent of the Reshape statement in the TL.
+    Loop statements: Translate for loops into standard C++ for loops within the CUDA kernel, utilizing CuTe's indexing mechanisms to correctly iterate over tensor elements or blocks.
+
+Ensure that the translated CuTe code is self-contained and runnable within a CUDA environment, assuming necessary boilerplate (kernel definition, launch configuration) is in place (you do not need to generate the full CUDA program, just the relevant kernel logic based on the TL). Assume standard CuTe includes and namespaces are in use.
+
+Your output should be the CuTe code corresponding to the provided TL.
