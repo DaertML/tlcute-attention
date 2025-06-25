@@ -1,6 +1,8 @@
 # tlcute-attention
 Open source implementation of the QiMeng-Attention paper: https://www.arxiv.org/pdf/2506.12355
 
+![alt text](image-6.webp "A cute treasure found by a llama")
+
 # Introduction
 The use of TL-Code, an intermediate and high level natural language programming language that is used by LLMs to implement in an easier manner the CuTe implementation of the Attention kernels. This could be used to implement other operations different to attention, and the different attention flavors.
 
